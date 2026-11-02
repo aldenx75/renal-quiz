@@ -145,11 +145,11 @@
       <div class="card">
         <h3>Lecture Slides</h3>
         <select id="slide-select" onchange="onSelectSlideChange()" style="padding: 0.5rem; width: 100%; margin-bottom: 1rem; background: #334155; color: white; border: none; border-radius: 4px;">
-          <!-- Make sure values match your PDF file names -->
-          <option value="renal_lecture1.pdf">Renal Lecture 1: Physiology</option>
-          <option value="renal_lecture2.pdf">Renal Lecture 2: Pathology</option>
+          <option value="1. Functional anatomy and development(1).pdf">1. Functional Anatomy & Development</option>
+          <option value="2. Histology 1.pdf">2. Histology 1</option>
+          <option value="3-4. Urea cycle.pdf">3-4. Urea Cycle</option>
         </select>
-        <iframe id="pdf-viewer" src="renal_lecture1.pdf"></iframe>
+        <iframe id="pdf-viewer" src="1. Functional anatomy and development(1).pdf"></iframe>
       </div>
     </div>
 
@@ -178,32 +178,32 @@
   </main>
 
   <script>
-    // --- SAMPLE QUIZ DATA WITH SLIDE PAGE NUMBERS ---
-    // Update or replace this array with NotebookLM questions
+    // --- QUIZ DATA WITH PDF & SLIDE PAGE NUMBERS ---
+    // Replace or extend this array with questions generated from NotebookLM
     const quizData = [
       {
-        lecture: "Renal Lecture 1: Physiology",
+        lecture: "1. Functional Anatomy & Development",
         question: "What is the primary site of sodium and water reabsorption in the nephron?",
         options: ["Proximal Convoluted Tubule", "Loop of Henle", "Distal Convoluted Tubule", "Collecting Duct"],
         answer: 0,
-        slideUrl: "renal_lecture1.pdf",
+        slideUrl: "1. Functional anatomy and development(1).pdf",
         slidePage: 4
       },
       {
-        lecture: "Renal Lecture 1: Physiology",
-        question: "Which hormone acts directly on the principal cells of the collecting duct to increase water reabsorption?",
-        options: ["Aldosterone", "Antidiuretic Hormone (ADH / Vasopressin)", "Renin", "Angiotensin II"],
-        answer: 1,
-        slideUrl: "renal_lecture1.pdf",
-        slidePage: 12
+        lecture: "2. Histology 1",
+        question: "Which cell type forms the visceral layer of Bowman's capsule?",
+        options: ["Podocytes", "Mesangial cells", "Endothelial cells", "Macula densa cells"],
+        answer: 0,
+        slideUrl: "2. Histology 1.pdf",
+        slidePage: 7
       },
       {
-        lecture: "Renal Lecture 2: Pathology",
-        question: "Which histological feature is characteristic of Minimal Change Disease?",
-        options: ["Glomerular basement membrane splitting", "Epithelial podocyte effacement", "Crescent formation", "IgA deposition"],
-        answer: 1,
-        slideUrl: "renal_lecture2.pdf",
-        slidePage: 8
+        lecture: "3-4. Urea Cycle",
+        question: "Which enzyme catalyzes the rate-limiting step of the urea cycle?",
+        options: ["Carbamoyl phosphate synthetase I (CPS I)", "Ornithine transcarbamylase", "Argininosuccinate synthetase", "Arginase"],
+        answer: 0,
+        slideUrl: "3-4. Urea cycle.pdf",
+        slidePage: 3
       }
     ];
 
