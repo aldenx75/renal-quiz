@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Renal Study Hub & Quiz Tracker</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --text: #f8fafc;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --subtext: #94a3b8;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      background: #020617;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+    }
+    nav button {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-left: 0.5rem;
+      font-weight: bold;
+    }
+    nav button.active {
+      background: var(--accent);
+      color: var(--bg);
+    }
+    main {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .view { display: none; }
+    .view.active { display: block; }
+    
+    .card {
+      background: var(--card);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      border: 1px solid #334155;
+    }
+    
+    .option-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: #334155;
+      color: var(--text);
+      border: none;
+      padding: 0.8rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .option-btn:hover { background: #475569; }
+    .option-btn.correct { background: var(--success) !important; color: white; }
+    .option-btn.incorrect { background: var(--danger) !important; color: white; }
+    
+    .action-btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      margin-top: 1rem;
+    }
+    .btn-next { background: var(--accent); color: #0f172a; }
+    .btn-slide { background: #475569; color: white; text-decoration: none; display: inline-block; }
+    .btn-slide:hover { background: #64748b; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .stat-box {
+      background: #020617;
+      padding: 1rem;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--accent);
+    }
+
+    iframe {
+      width: 100%;
+      height: 650px;
+      border: none;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>🩺 Renal Study Hub</h2>
+    <nav>
+      <button class="active" id="nav-quiz" onclick="switchTab('quiz')">Quizzes</button>
+      <button id="nav-slides" onclick="switchTab('slides')">Slides</button>
+      <button id="nav-stats" onclick="switchTab('stats')">Analytics</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- QUIZ VIEW -->
+    <div id="quiz" class="view active">
+      <div class="card">
+        <span id="quiz-lecture-tag" style="color: var(--accent); font-weight: bold; font-size: 0.85rem;"></span>
+        <h3 id="quiz-question">Loading Question...</h3>
+        <div id="quiz-options"></div>
+        <p id="quiz-feedback" style="font-weight: bold; margin-top: 1rem;"></p>
+        
+        <div style="margin-top: 1rem;">
+          <button id="slide-ref-btn" class="action-btn btn-slide" onclick="jumpToCurrentQuestionSlide()">📖 View Slide Reference</button>
+          <button id="next-btn" class="action-btn btn-next" style="display:none;" onclick="loadNextQuestion()">Next Question ➔</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDES VIEW -->
+    <div id="slides" class="view">
+      <div class="card">
+        <h3>Lecture Slides</h3>
+        <select id="slide-select" onchange="onSelectSlideChange()" style="padding: 0.5rem; width: 100%; margin-bottom: 1rem; background: #334155; color: white; border: none; border-radius: 4px;">
+          <!-- Make sure values match your PDF file names -->
+          <option value="renal_lecture1.pdf">Renal Lecture 1: Physiology</option>
+          <option value="renal_lecture2.pdf">Renal Lecture 2: Pathology</option>
+        </select>
+        <iframe id="pdf-viewer" src="renal_lecture1.pdf"></iframe>
+      </div>
+    </div>
+
+    <!-- STATS VIEW -->
+    <div id="stats" class="view">
+      <div class="card">
+        <h3>Performance Summary</h3>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div id="stat-total" class="stat-number">0</div>
+            <div>Questions Completed</div>
+          </div>
+          <div class="stat-box">
+            <div id="stat-accuracy" class="stat-number">0%</div>
+            <div>Overall Accuracy</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Performance by Topic</h3>
+        <div id="topic-breakdown">No data recorded yet.</div>
+      </div>
+      <button onclick="resetStats()" style="background: var(--danger); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">Reset Analytics Data</button>
+    </div>
+  </main>
+
+  <script>
+    // --- SAMPLE QUIZ DATA WITH SLIDE PAGE NUMBERS ---
+    // Update or replace this array with NotebookLM questions
+    const quizData = [
+      {
+        lecture: "Renal Lecture 1: Physiology",
+        question: "What is the primary site of sodium and water reabsorption in the nephron?",
+        options: ["Proximal Convoluted Tubule", "Loop of Henle", "Distal Convoluted Tubule", "Collecting Duct"],
+        answer: 0,
+        slideUrl: "renal_lecture1.pdf",
+        slidePage: 4
+      },
+      {
+        lecture: "Renal Lecture 1: Physiology",
+        question: "Which hormone acts directly on the principal cells of the collecting duct to increase water reabsorption?",
+        options: ["Aldosterone", "Antidiuretic Hormone (ADH / Vasopressin)", "Renin", "Angiotensin II"],
+        answer: 1,
+        slideUrl: "renal_lecture1.pdf",
+        slidePage: 12
+      },
+      {
+        lecture: "Renal Lecture 2: Pathology",
+        question: "Which histological feature is characteristic of Minimal Change Disease?",
+        options: ["Glomerular basement membrane splitting", "Epithelial podocyte effacement", "Crescent formation", "IgA deposition"],
+        answer: 1,
+        slideUrl: "renal_lecture2.pdf",
+        slidePage: 8
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+
+    // Load saved analytics from browser storage
+    let stats = JSON.parse(localStorage.getItem("renal_study_stats")) || {
+      total: 0,
+      correct: 0,
+      topics: {}
+    };
+
+    function saveStats() {
+      localStorage.setItem("renal_study_stats", JSON.stringify(stats));
+    }
+
+    // Switch between main tabs
+    function switchTab(tabId) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      document.getElementById('nav-' + tabId).classList.add('active');
+      if (tabId === 'stats') renderStats();
+    }
+
+    // Load question details
+    function loadQuestion(index) {
+      const q = quizData[index];
+      document.getElementById("quiz-lecture-tag").innerText = q.lecture.toUpperCase();
+      document.getElementById("quiz-question").innerText = q.question;
+      document.getElementById("quiz-feedback").innerText = "";
+      document.getElementById("next-btn").style.display = "none";
+
+      // Update slide reference button text
+      const slideBtn = document.getElementById("slide-ref-btn");
+      if (q.slidePage) {
+        slideBtn.innerText = `📖 View Slide Reference (Page ${q.slidePage})`;
+        slideBtn.style.display = "inline-block";
+      } else {
+        slideBtn.style.display = "none";
+      }
+
+      const optionsDiv = document.getElementById("quiz-options");
+      optionsDiv.innerHTML = "";
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerText = opt;
+        btn.onclick = () => checkAnswer(idx, q.answer, q.lecture, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    // Jump directly to the slide PDF page linked to the current question
+    function jumpToCurrentQuestionSlide() {
+      const q = quizData[currentQuestionIndex];
+      if (!q.slideUrl || !q.slidePage) return;
+
+      const pdfViewer = document.getElementById("pdf-viewer");
+      const slideSelect = document.getElementById("slide-select");
+
+      // Set dropdown selection to match question slide URL
+      slideSelect.value = q.slideUrl;
+
+      // Update PDF source with page fragment (#page=N)
+      pdfViewer.src = `${q.slideUrl}#page=${q.slidePage}`;
+
+      // Switch to slides tab
+      switchTab('slides');
+    }
+
+    function onSelectSlideChange() {
+      const pdfUrl = document.getElementById("slide-select").value;
+      document.getElementById("pdf-viewer").src = pdfUrl;
+    }
+
+    // Check answer selection
+    function checkAnswer(selected, correct, topic, button) {
+      const buttons = document.querySelectorAll(".option-btn");
+      buttons.forEach(btn => btn.disabled = true);
+
+      if (!stats.topics[topic]) {
+        stats.topics[topic] = { attempted: 0, correct: 0 };
+      }
+
+      stats.total++;
+      stats.topics[topic].attempted++;
+
+      if (selected === correct) {
+        button.classList.add("correct");
+        document.getElementById("quiz-feedback").innerText = "✨ Correct!";
+        document.getElementById("quiz-feedback").style.color = "var(--success)";
+        stats.correct++;
+        stats.topics[topic].correct++;
+      } else {
+        button.classList.add("incorrect");
+        buttons[correct].classList.add("correct");
+        document.getElementById("quiz-feedback").innerText = "❌ Incorrect. See correct answer above.";
+        document.getElementById("quiz-feedback").style.color = "var(--danger)";
+      }
+
+      saveStats();
+      document.getElementById("next-btn").style.display = "inline-block";
+    }
+
+    function loadNextQuestion() {
+      currentQuestionIndex = (currentQuestionIndex + 1) % quizData.length;
+      loadQuestion(currentQuestionIndex);
+    }
+
+    // Render stats analysis
+    function renderStats() {
+      document.getElementById("stat-total").innerText = stats.total;
+      const acc = stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0;
+      document.getElementById("stat-accuracy").innerText = `${acc}%`;
+
+      const breakdownDiv = document.getElementById("topic-breakdown");
+      breakdownDiv.innerHTML = "";
+
+      if (Object.keys(stats.topics).length === 0) {
+        breakdownDiv.innerText = "No quizzes completed yet.";
+        return;
+      }
+
+      for (const [topic, data] of Object.entries(stats.topics)) {
+        const topicAcc = Math.round((data.correct / data.attempted) * 100);
+        const statusColor = topicAcc < 70 ? "var(--danger)" : "var(--success)";
+        
+        const topicEl = document.createElement("div");
+        topicEl.style.margin = "0.75rem 0";
+        topicEl.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom: 0.25rem;">
+            <span><strong>${topic}</strong> (${data.correct}/${data.attempted})</span>
+            <span style="color: ${statusColor}; font-weight: bold;">${topicAcc}% Accuracy ${topicAcc < 70 ? '⚠️ Review Needed' : '✅ Mastered'}</span>
+          </div>
+        `;
+        breakdownDiv.appendChild(topicEl);
+      }
+    }
+
+    function resetStats() {
+      if (confirm("Reset all quiz analytics?")) {
+        localStorage.removeItem("renal_study_stats");
+        stats = { total: 0, correct: 0, topics: {} };
+        renderStats();
+      }
+    }
+
+    // Initialize first question on page load
+    loadQuestion(0);
+  </script>
+</body>
+</html>
